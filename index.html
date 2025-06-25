@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 영단어 학습 앱</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📖</text></svg>">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+    tailwind.config = {
+      darkMode: 'class', // Ensure 'class' strategy is used
+      theme: {
+        extend: {
+          keyframes: {
+            fadeIn: {
+              '0%': { opacity: '0', transform: 'translateY(-10px)' },
+              '100%': { opacity: '1', transform: 'translateY(0)' },
+            },
+            fadeOut: {
+              '0%': { opacity: '1', transform: 'translateY(0)' },
+              '100%': { opacity: '0', transform: 'translateY(-10px)' },
+            },
+            slideInRight: {
+              '0%': { transform: 'translateX(100%)', opacity: '0'},
+              '100%': { transform: 'translateX(0)', opacity: '1'},
+            },
+            slideOutRight: {
+              '0%': { transform: 'translateX(0)', opacity: '1'},
+              '100%': { transform: 'translateX(100%)', opacity: '0'},
+            }
+          },
+          animation: {
+            fadeIn: 'fadeIn 0.3s ease-out forwards',
+            fadeOut: 'fadeOut 0.3s ease-in forwards',
+            slideInRight: 'slideInRight 0.3s ease-out forwards',
+            slideOutRight: 'slideOutRight 0.3s ease-in forwards',
+          },
+          colors: {
+            // Ensure your color palette works well for both light and dark modes
+            // Or define specific light/dark versions if needed, though Tailwind's `dark:` prefix is preferred
+            'slate': {
+              50: '#f8fafc',  // light bg
+              100: '#f1f5f9', // light bg
+              200: '#e2e8f0', // light borders
+              300: '#cbd5e1', // light text/borders
+              400: '#94a3b8', // medium text
+              500: '#64748b', // medium interactive
+              600: '#475569', // dark interactive elements
+              700: '#334155', // dark card backgrounds
+              800: '#1e293b', // dark main background
+              900: '#0f172a', // very dark background
+            },
+            'cyan': {
+               50: '#ecfeff',
+              100: '#cffafe',
+              200: '#a5f3fc',
+              300: '#67e8f9',
+              400: '#22d3ee',
+              500: '#06b6d4', // Primary accent
+              600: '#0891b2', // Hover accent
+              700: '#0e7490',
+              800: '#155e75',
+              900: '#164e63',
+              950: '#083344'
+            },
+          }
+        }
+      }
+    }
+  </script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+<script type="importmap">
+{
+  "imports": {
+    "react-dom/": "https://esm.sh/react-dom@^19.1.0/",
+    "react/": "https://esm.sh/react@^19.1.0/",
+    "react": "https://esm.sh/react@^19.1.0",
+    "pdfjs-dist": "https://esm.sh/pdfjs-dist@4.3.136",
+    "pdfjs-dist/build/pdf.worker.mjs": "https://esm.sh/pdfjs-dist@4.3.136/build/pdf.worker.mjs",
+    "xlsx": "https://esm.sh/xlsx@0.18.5",
+    "@google/genai": "https://esm.sh/@google/genai"
+  }
+}
+</script>
+    <link rel="stylesheet" href="index.css">
+    <style>
+        /* Styles for the card flip animation */
+        .perspective {
+            perspective: 1000px;
+        }
+        .card-inner {
+            position: relative;
+            width: 100%;
+            min-height: 300px; 
+            transition: transform 0.7s cubic-bezier(0.4, 0.0, 0.2, 1);
+            transform-style: preserve-3d;
+        }
+        .card-inner.is-flipped {
+            transform: rotateY(180deg);
+        }
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden; /* Safari */
+            backface-visibility: hidden;
+        }
+        .card-front {
+            /* No specific transform needed here */
+        }
+        .card-back {
+            transform: rotateY(180deg);
+        }
+        /* Custom scrollbar for chat and other scrollable areas */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #e2e8f0; /* slate-200 for light */
+            border-radius: 10px;
+        }
+        .dark .custom-scrollbar::-webkit-scrollbar-track {
+            background: #1e293b; /* slate-800 for dark */
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #94a3b8; /* slate-400 for light */
+            border-radius: 10px;
+        }
+        .dark .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #475569; /* slate-600 for dark */
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #64748b; /* slate-500 for light */
+        }
+        .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #64748b; /* slate-500 for dark */
+        }
+        /* Basic styling for toggle switch */
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: #06b6d4; /* cyan-500 */
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #06b6d4; /* cyan-500 */
+        }
+    </style>
+<link rel="stylesheet" href="/index.css">
+</head>
+<body class="font-[Noto Sans KR] flex justify-center items-start min-h-screen p-0 sm:p-4 bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-200 transition-colors duration-300">
+    <div id="root" class="w-full max-w-4xl flex flex-col overflow-hidden 
+                         sm:rounded-xl sm:shadow-2xl 
+                         bg-white dark:bg-slate-800 
+                         text-slate-900 dark:text-slate-100
+                         h-screen sm:h-auto sm:max-h-[95vh]">
+    </div>
+    <script type="module" src="index.tsx"></script>
+<script type="module" src="/index.tsx"></script>
+</body>
+</html>

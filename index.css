@@ -1,0 +1,5 @@
+/* 
+  All styles are now handled by TailwindCSS utility classes in index.tsx 
+  and the Tailwind Play CDN setup in index.html.
+  This file can be kept for future custom CSS if needed, or for Tailwind directives if using a build process.
+*/

@@ -1,0 +1,24 @@
+{
+  "name": "(단원별-단어)ai-영단어-학습-앱-1순위-v-1.1",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react-dom": "^19.1.0",
+    "react": "^19.1.0",
+    "pdfjs-dist": "4.3.136",
+    "pdfjs-dist/build/pdf.worker.mjs": "latest",
+    "xlsx": "0.18.5",
+    "@google/genai": "latest"
+  },
+  "devDependencies": {
+    "@types/node": "^22.14.0",
+    "typescript": "~5.7.2",
+    "vite": "^6.2.0"
+  }
+}
