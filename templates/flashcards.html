@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>플래시카드 학습: {{ chapter_name }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 90vh; background-color: #f0f0f0; margin: 0; padding-top: 20px; padding-bottom:20px; }
+        .flashcard-container { width: 90%; max-width: 500px; perspective: 1000px; }
+        .flashcard { width: 100%; height: 250px; position: relative; transform-style: preserve-3d; transition: transform 0.6s; cursor: pointer; border-radius: 15px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        .flashcard.is-flipped { transform: rotateY(180deg); }
+        .card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; display: flex; align-items: center; justify-content: center; font-size: 1.8em; text-align: center; padding: 20px; box-sizing: border-box; border-radius: 15px; overflow-wrap: break-word; word-wrap: break-word; }
+        .card-front { background-color: #007bff; color: white; }
+        .card-back { background-color: #28a745; color: white; transform: rotateY(180deg); }
+        .navigation-controls { margin-top: 25px; display: flex; justify-content: space-between; align-items:center; width: 90%; max-width: 500px; }
+        .navigation-controls button { padding: 10px 20px; font-size: 1em; cursor: pointer; background-color: #6c757d; color: white; border: none; border-radius: 5px; }
+        .navigation-controls button:disabled { background-color: #c0c0c0; cursor: not-allowed; }
+        .navigation-controls button:hover:not(:disabled) { background-color: #5a6268; }
+        .card-counter { font-size: 1em; color: #333; }
+        .actions { margin-top: 30px; text-align: center;}
+        .actions a { text-decoration: none; color: #007bff; margin: 0 10px; padding: 8px 12px; border: 1px solid #007bff; border-radius: 3px;}
+        .actions a:hover { background-color:#007bff; color:white; }
+        h1 { color: #333; margin-bottom: 20px; text-align: center; }
+    </style>
+</head>
+<body>
+    <h1>플래시카드: {{ chapter_name }}</h1>
+
+    <div class="flashcard-container">
+        <div class="flashcard" id="flashcard">
+            <div class="card-face card-front" id="card-front">
+                <!-- Word will be injected here -->
+            </div>
+            <div class="card-face card-back" id="card-back">
+                <!-- Definition will be injected here -->
+            </div>
+        </div>
+    </div>
+
+    <div class="navigation-controls">
+        <button id="prev-card" onclick="prevCard()">이전</button>
+        <span id="card-counter" class="card-counter"></span>
+        <button id="next-card" onclick="nextCard()">다음</button>
+    </div>
+
+    <div class="actions">
+        <a href="{{ url_for('list_chapters') }}">단원 목록</a>
+        <a href="{{ url_for('take_quiz', chapter_index=chapter_index) }}">이 단원 퀴즈</a>
+    </div>
+
+    <script>
+        const wordsJson = {{ words|tojson|safe }}; // words is a list of [word, definition] pairs
+        const words = Array.isArray(wordsJson) ? wordsJson : [];
+        let currentCardIndex = 0;
+        const flashcard = document.getElementById('flashcard');
+        const cardFront = document.getElementById('card-front');
+        const cardBack = document.getElementById('card-back');
+        const cardCounter = document.getElementById('card-counter');
+        const prevButton = document.getElementById('prev-card');
+        const nextButton = document.getElementById('next-card');
+
+        function displayCard() {
+            if (words.length === 0 || currentCardIndex < 0 || currentCardIndex >= words.length) {
+                cardFront.textContent = '단어가 없습니다.';
+                cardBack.textContent = ''; // Clear back if no words
+                cardCounter.textContent = '0/0';
+                prevButton.disabled = true;
+                nextButton.disabled = true;
+                if (flashcard) flashcard.style.cursor = 'default';
+                return;
+            }
+
+            const [word, definition] = words[currentCardIndex];
+            cardFront.textContent = word;
+            cardBack.textContent = definition;
+            if (flashcard) {
+                flashcard.classList.remove('is-flipped');
+                flashcard.style.cursor = 'pointer';
+            }
+            updateCounter();
+            updateNavButtons();
+        }
+
+        function updateCounter() {
+            cardCounter.textContent = `${currentCardIndex + 1} / ${words.length}`;
+        }
+
+        function updateNavButtons() {
+            prevButton.disabled = currentCardIndex === 0;
+            nextButton.disabled = currentCardIndex === words.length - 1;
+        }
+
+        function flipCard() {
+            if (words.length > 0 && flashcard) {
+                flashcard.classList.toggle('is-flipped');
+            }
+        }
+
+        function nextCard() {
+            if (currentCardIndex < words.length - 1) {
+                currentCardIndex++;
+                displayCard();
+            }
+        }
+
+        function prevCard() {
+            if (currentCardIndex > 0) {
+                currentCardIndex--;
+                displayCard();
+            }
+        }
+
+        if (flashcard) {
+            flashcard.addEventListener('click', flipCard);
+        }
+
+        // Initialize
+        // Ensure DOM is fully loaded, though for script at end of body, this is usually fine.
+        document.addEventListener('DOMContentLoaded', function() {
+            displayCard();
+        });
+        // Call displayCard directly too in case DOMContentLoaded already fired or not needed for this simple case.
+        if (document.readyState === "loading") {
+            document.addEventListener('DOMContentLoaded', displayCard);
+        } else {  // `DOMContentLoaded` already fired
+            displayCard();
+        }
+
+    </script>
+</body>
+</html>

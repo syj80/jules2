@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>단원 목록 - 단어 학습</title>
+    <style>
+        body { font-family: sans-serif; margin: 20px; background-color: #f4f4f4; color: #333; }
+        .container { background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        h1 { color: #333; }
+        ul { list-style: none; padding: 0; }
+        li { background-color: #e9ecef; margin-bottom: 10px; padding: 10px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; }
+        li strong { color: #007bff; }
+        li .actions a { margin-left: 10px; text-decoration: none; color: #007bff; padding: 5px 10px; border: 1px solid #007bff; border-radius: 3px; }
+        li .actions a:hover { background-color: #007bff; color: white; }
+        .no-data { color: #777; }
+        .upload-link { margin-top: 20px; display: inline-block; color: #007bff; text-decoration: none; padding: 8px 12px; border: 1px solid #007bff; border-radius: 3px;}
+        .upload-link:hover { background-color: #007bff; color: white; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>추출된 단원 목록</h1>
+
+        {% if chapters_data is none %}
+            <p class="no-data">아직 PDF 파일이 처리되지 않았습니다. <a href="{{ url_for('upload_pdf') }}" class="upload-link">먼저 PDF를 업로드해주세요.</a></p>
+        {% elif chapters_data %}
+            <ul>
+                {% for chapter in chapters_data %}
+                <li>
+                    <div>
+                        <strong>{{ chapter.name }}</strong> (단어 {{ chapter.words|length }}개)
+                    </div>
+                    <div class="actions">
+                        {% if chapter.words %}
+                            {# These links will be implemented in later steps #}
+                            <a href="{{ url_for('view_flashcards', chapter_index=loop.index0) }}">플래시카드 학습</a>
+                            <a href="{{ url_for('take_quiz', chapter_index=loop.index0) }}">퀴즈 풀기</a>
+                        {% else %}
+                            <span>(단어 없음)</span>
+                        {% endif %}
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+            <p><a href="{{ url_for('upload_pdf') }}" class="upload-link">다른 PDF 업로드하기</a></p>
+        {% else %}
+            {# This case means a PDF was processed, but parse_text_to_chapters returned an empty list #}
+            <p class="no-data">PDF에서 단원을 추출하지 못했거나, 추출된 단원에 단어가 없습니다. 파일 내용을 확인하거나 다른 파일을 시도해보세요.</p>
+            <p><a href="{{ url_for('upload_pdf') }}" class="upload-link">다른 PDF 업로드하기</a></p>
+        {% endif %}
+    </div>
+</body>
+</html>

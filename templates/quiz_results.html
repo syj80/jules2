@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>퀴즈 결과: {{ chapter_name }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f4; color: #333; }
+        .container { background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); max-width: 800px; margin: auto; }
+        h1 { color: #333; text-align: center; }
+        .score-summary { text-align: center; font-size: 1.5em; margin-bottom: 25px; padding: 15px; background-color: #e9ecef; border-radius: 5px; }
+        .score-summary strong { font-size: 1.8em; color: #007bff; }
+        .results-list { list-style: none; padding: 0; }
+        .result-item { margin-bottom: 15px; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .result-item.correct { border-left: 5px solid #28a745; background-color: #f0fff4; }
+        .result-item.incorrect { border-left: 5px solid #dc3545; background-color: #fff0f1; }
+        .result-item p { margin: 5px 0; }
+        .term { font-weight: bold; font-size: 1.2em; }
+        .user-answer { }
+        .correct-answer-text { color: #28a745; font-weight: bold; } /* Renamed from .correct-answer to avoid conflict */
+        .options-list { margin-left: 20px; font-size: 0.9em; color: #555; padding-left:0; list-style-type: none;}
+        .options-list li.user-choice-correct { font-weight:bold; color: #28a745; }
+        .options-list li.user-choice-incorrect { font-weight:bold; color: #dc3545; text-decoration: line-through;}
+        .options-list li.actual-correct { font-weight:bold; color: #28a745 !important; } /* Ensure this always shows correct */
+
+        .actions { margin-top: 30px; text-align: center; }
+        .actions a { text-decoration: none; color: #007bff; margin: 0 10px; padding: 10px 15px; border: 1px solid #007bff; border-radius: 4px; }
+        .actions a:hover { background-color: #007bff; color: white; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>퀴즈 결과: {{ chapter_name }}</h1>
+
+        <div class="score-summary">
+            <p>총 <strong>{{ num_questions }}</strong> 문제 중 <strong>{{ score }}</strong> 개를 맞혔습니다!</p>
+            <p>점수: <strong>{{ "%.2f"|format(percentage_score) }}%</strong></p>
+        </div>
+
+        <h2>상세 결과:</h2>
+        <ul class="results-list">
+            {% for result in results %}
+            <li class="result-item {% if result.is_correct %}correct{% else %}incorrect{% endif %}">
+                <p class="term">단어: {{ result.term }}</p>
+                <p class="user-answer">선택한 답: {{ result.your_answer }}</p>
+                {% if not result.is_correct %}
+                    <p><span class="correct-answer-text">정답: {{ result.correct_answer }}</span></p>
+                {% endif %}
+                <details>
+                    <summary style="cursor:pointer; font-size:0.9em; color:#007bff;">보기 옵션 및 선택 상세</summary>
+                    <ul class="options-list">
+                    {% for option in result.options %}
+                        {% set is_user_answer = (option == result.your_answer) %}
+                        {% set is_correct_answer = (option == result.correct_answer) %}
+                        <li
+                            class="
+                            {% if is_user_answer and result.is_correct %}user-choice-correct
+                            {% elif is_user_answer and not result.is_correct %}user-choice-incorrect
+                            {% elif is_correct_answer %}actual-correct{% endif %}
+                            ">
+                            {{ option }}
+                            {% if is_user_answer and result.is_correct %} (정답 선택)
+                            {% elif is_user_answer and not result.is_correct %} (오답 선택)
+                            {% elif is_correct_answer %} (실제 정답)
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                    </ul>
+                </details>
+            </li>
+            {% endfor %}
+        </ul>
+
+        <div class="actions">
+            <a href="{{ url_for('take_quiz', chapter_index=chapter_index) }}">퀴즈 다시 풀기</a>
+            <a href="{{ url_for('view_flashcards', chapter_index=chapter_index) }}">플래시카드 학습</a>
+            <a href="{{ url_for('list_chapters') }}">단원 목록으로 돌아가기</a>
+        </div>
+    </div>
+</body>
+</html>

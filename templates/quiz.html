@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>퀴즈: {{ chapter_name }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f4; color: #333; }
+        .container { background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); max-width: 700px; margin: auto; }
+        h1 { color: #333; text-align: center; }
+        .question-block { margin-bottom: 25px; padding: 15px; border: 1px solid #ddd; border-radius: 5px; background-color: #f9f9f9; }
+        .question-term { font-size: 1.4em; font-weight: bold; margin-bottom: 10px; color: #007bff; }
+        .options label { display: block; margin-bottom: 8px; font-size: 1.1em; background-color: #e9ecef; padding: 10px; border-radius: 4px; cursor: pointer; }
+        .options label:hover { background-color: #d1d9e0; }
+        .options input[type="radio"] { margin-right: 10px; }
+        .submit-btn { display: block; width: 100%; padding: 12px; font-size: 1.2em; background-color: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; margin-top: 20px; }
+        .submit-btn:hover { background-color: #218838; }
+        .flash-messages { list-style: none; padding: 0; margin-bottom:15px; }
+        .flash-messages li { margin-bottom: 10px; padding: 10px; border-radius: 4px; }
+        .flash-messages .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .flash-messages .warning { background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+        .actions { margin-top: 30px; text-align: center;}
+        .actions a { text-decoration: none; color: #007bff; margin: 0 10px; padding: 8px 12px; border: 1px solid #007bff; border-radius: 3px;}
+        .actions a:hover { background-color:#007bff; color:white; }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>퀴즈: {{ chapter_name }}</h1>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <ul class="flash-messages">
+            {% for category, message in messages %}
+              <li class="{{ category }}">{{ message }}</li>
+            {% endfor %}
+            </ul>
+          {% endif %}
+        {% endwith %}
+
+        {% if questions %}
+            <form action="{{ url_for('submit_quiz', chapter_index=chapter_index) }}" method="POST">
+                {% for question in questions %}
+                <div class="question-block">
+                    <p class="question-term">{{ loop.index }}. 다음 단어의 올바른 정의를 선택하세요: <strong>{{ question.term }}</strong></p>
+                    <div class="options">
+                        {% for option in question.options %}
+                        <label>
+                            <input type="radio" name="{{ question.id }}" value="{{ option }}" required> {{ option }}
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+                <button type="submit" class="submit-btn">퀴즈 제출</button>
+            </form>
+        {% else %}
+            <p>이 단원에는 현재 퀴즈 질문이 없습니다. 단어 수가 부족할 수 있습니다 (최소 1-2개의 단어와 정의 필요).</p>
+        {% endif %}
+        <div class="actions">
+            <a href="{{ url_for('view_flashcards', chapter_index=chapter_index) }}">플래시카드 학습</a>
+            <a href="{{ url_for('list_chapters') }}">단원 목록</a>
+        </div>
+    </div>
+</body>
+</html>
